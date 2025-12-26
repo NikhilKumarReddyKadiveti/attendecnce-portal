@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Attendance Portal | SE Project</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary-color: #2c54a5; /* Academic Blue */
+            --secondary-color: #858796;
+            --success-color: #1cc88a;
+            --warning-color: #f6c23e;
+            --danger-color: #e74a3b;
+            --light-bg: #f8f9fc;
+            --sidebar-width: 250px;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--light-bg);
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        /* --- Utilities --- */
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
+            transition: transform 0.2s;
+        }
+        
+        .card:hover {
+            transform: translateY(-3px);
+        }
+
+        .text-primary-custom { color: var(--primary-color); }
+
+        /* --- Login Page --- */
+        #login-section {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--primary-color) 0%, #6085d6 100%);
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 450px;
+            padding: 2rem;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        /* --- Sidebar & Layout --- */
+        #app-wrapper {
+            display: none; /* Hidden by default until login */
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--primary-color);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            transition: all 0.3s;
+            z-index: 100;
+        }
+
+        .sidebar-brand {
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .nav-item {
+            padding: 0 1rem;
+        }
+
+        .nav-link {
+            color: rgba(255,255,255,0.8);
+            padding: 1rem;
+            display: block;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: white;
+            background-color: rgba(255,255,255,0.15);
+            font-weight: 600;
+        }
+
+        .nav-link i { margin-right: 10px; width: 20px; text-align: center; }
+
+        .content-wrapper {
+            margin-left: var(--sidebar-width);
+            width: calc(100% - var(--sidebar-width));
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        /* --- Topbar --- */
+        .topbar {
+            height: 70px;
+            background: white;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 0 2rem;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        /* --- Main Content Area --- */
+        .main-content {
+            padding: 2rem;
+        }
+
+        .view-section {
+            display: none; /* All views hidden by default */
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- SDLC Diagram Styles --- */
+        .sdlc-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .sdlc-box {
+            background: white;
+            border-left: 5px solid var(--primary-color);
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            text-align: center;
+            flex: 1;
+            min-width: 150px;
+            position: relative;
+        }
+
+        .sdlc-arrow {
+            color: var(--secondary-color);
+            font-size: 1.5rem;
+        }
+
+        /* Responsive Fixes */
+        @media (max-width: 768px) {
+            .sidebar { margin-left: calc(-1 * var(--sidebar-width)); }
+            .content-wrapper { margin-left: 0; width: 100%; }
+            .sidebar.show { margin-left: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="login-section">
+        <div class="login-card">
+            <div class="text-center mb-4">
+                <i class="fas fa-university fa-3x text-primary-custom mb-3"></i>
+                <h3 class="fw-bold text-dark">Smart Attendance</h3>
+                <p class="text-muted">Academic Portal Login</p>
+            </div>
+            <form onsubmit="handleLogin(event)">
+                <div class="mb-3">
+                    <label class="form-label">Email / ID</label>
+                    <input type="email" class="form-control form-control-lg" placeholder="Enter your ID" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Password</label>
+                    <input type="password" class="form-control form-control-lg" placeholder="********" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Select Role</label>
+                    <select class="form-select form-select-lg" id="roleSelect" required>
+                        <option value="" selected disabled>Choose your role...</option>
+                        <option value="admin">Administrator</option>
+                        <option value="faculty">Faculty</option>
+                        <option value="student">Student</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg w-100 mb-3" style="background-color: var(--primary-color);">Login</button>
+                <div class="text-center">
+                    <a href="#" class="text-muted small">Forgot Password?</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="app-wrapper" style="display: none;">
+        
+        <nav class="sidebar">
+            <div class="sidebar-brand">
+                <i class="fas fa-graduation-cap me-2"></i> SAP PORTAL
+            </div>
+            <ul class="list-unstyled mt-3" id="sidebar-menu">
+                </ul>
+        </nav>
+
+        <div class="content-wrapper">
+            <div class="topbar">
+                <div class="user-profile">
+                    <div class="text-end me-2 d-none d-sm-block">
+                        <div class="fw-bold text-dark" id="user-name-display">User Name</div>
+                        <div class="small text-muted" id="user-role-display">Role</div>
+                    </div>
+                    <div class="user-avatar" id="user-avatar-initial">U</div>
+                </div>
+            </div>
+
+            <div class="main-content">
+
+                <div id="view-admin" class="view-section">
+                    <h2 class="h3 mb-4 text-gray-800">Admin Dashboard</h2>
+                    
+                    <div class="row mb-4">
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-start border-4 border-primary h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Students</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">2,500</div>
+                                        </div>
+                                        <div class="col-auto"><i class="fas fa-users fa-2x text-gray-300"></i></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-start border-4 border-success h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Total Faculty</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">120</div>
+                                        </div>
+                                        <div class="col-auto"><i class="fas fa-chalkboard-teacher fa-2x text-gray-300"></i></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-start border-4 border-info h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Active Courses</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">45</div>
+                                        </div>
+                                        <div class="col-auto"><i class="fas fa-book fa-2x text-gray-300"></i></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-header py-3 bg-white d-flex flex-row align-items-center justify-content-between">
+                            <h6 class="m-0 font-weight-bold text-primary">Recent Activity</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>User</th>
+                                            <th>Role</th>
+                                            <th>Action</th>
+                                            <th>Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td>John Doe</td><td>Faculty</td><td>Uploaded Marks</td><td>2 mins ago</td></tr>
+                                        <tr><td>Jane Smith</td><td>Student</td><td>Login Attempt</td><td>15 mins ago</td></tr>
+                                        <tr><td>Admin Sys</td><td>Admin</td><td>System Update</td><td>1 hr ago</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="view-faculty" class="view-section">
+                    <h2 class="h3 mb-4 text-gray-800">Faculty Dashboard</h2>
+                    
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <div class="row g-3 align-items-end">
+                                <div class="col-md-4">
+                                    <label class="form-label">Select Course</label>
+                                    <select class="form-select">
+                                        <option>Software Engineering (SE-101)</option>
+                                        <option>Web Development (WD-202)</option>
+                                        <option>Database Systems (DB-303)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Select Date</label>
+                                    <input type="date" class="form-control" id="todayDate">
+                                </div>
+                                <div class="col-md-4">
+                                    <button class="btn btn-primary w-100" onclick="loadStudentTable()">Load Students</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3 bg-white">
+                            <h6 class="m-0 font-weight-bold text-primary">Mark Attendance</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Student ID</th>
+                                            <th>Name</th>
+                                            <th class="text-center">Status</th>
+                                            <th class="text-center">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="attendance-table-body">
+                                        </tbody>
+                                </table>
+                            </div>
+                            <div class="d-flex justify-content-end mt-3">
+                                <button class="btn btn-success px-4" onclick="alert('Attendance Submitted Successfully!')">
+                                    <i class="fas fa-check-circle me-2"></i>Submit Attendance
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="view-student" class="view-section">
+                    <h2 class="h3 mb-4 text-gray-800">My Dashboard</h2>
+                    
+                    <div class="row">
+                        <div class="col-xl-4 col-lg-5">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3 bg-white">
+                                    <h6 class="m-0 font-weight-bold text-primary">Overall Attendance</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-pie pt-4 pb-2">
+                                        <canvas id="myPieChart"></canvas>
+                                    </div>
+                                    <div class="mt-4 text-center small">
+                                        <span class="mr-2"><i class="fas fa-circle text-primary"></i> Present</span>
+                                        <span class="mr-2"><i class="fas fa-circle text-gray-300" style="color: #e2e6ea;"></i> Absent</span>
+                                    </div>
+                                    <h4 class="text-center mt-3 fw-bold">85%</h4>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-8 col-lg-7">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3 bg-white">
+                                    <h6 class="m-0 font-weight-bold text-primary">Subject-wise Summary</h6>
+                                </div>
+                                <div class="card-body">
+                                    <table class="table table-bordered">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Subject</th>
+                                                <th>Present</th>
+                                                <th>Absent</th>
+                                                <th>Percentage</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>Software Eng.</td>
+                                                <td>20</td>
+                                                <td>2</td>
+                                                <td>90%</td>
+                                                <td><span class="badge bg-success">Good</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Web Dev.</td>
+                                                <td>18</td>
+                                                <td>4</td>
+                                                <td>81%</td>
+                                                <td><span class="badge bg-warning text-dark">Average</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Data Structures</td>
+                                                <td>15</td>
+                                                <td>10</td>
+                                                <td>60%</td>
+                                                <td><span class="badge bg-danger">Critical</span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="view-reports" class="view-section">
+                    <h2 class="h3 mb-4 text-gray-800">Attendance Reports</h2>
+                    
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <select class="form-select"><option>All Courses</option><option>SE-101</option></select>
+                                </div>
+                                <div class="col-md-3">
+                                    <input type="date" class="form-control">
+                                </div>
+                                <div class="col-md-3">
+                                    <button class="btn btn-primary w-100">Filter</button>
+                                </div>
+                                <div class="col-md-3 text-end">
+                                    <button class="btn btn-outline-success" onclick="exportTable()"><i class="fas fa-file-excel me-2"></i>Export Excel</button>
+                                    <button class="btn btn-outline-danger ms-2"><i class="fas fa-file-pdf"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-warning border-start border-warning border-4">
+                        <i class="fas fa-exclamation-triangle me-2"></i> <strong>Warning:</strong> 5 Students have less than 75% attendance.
+                    </div>
+
+                    <div class="card shadow">
+                        <div class="card-body">
+                            <table class="table table-striped" id="reportTable">
+                                <thead>
+                                    <tr><th>ID</th><th>Student</th><th>Course</th><th>Date</th><th>Status</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>001</td><td>Alice Johnson</td><td>SE-101</td><td>2023-10-01</td><td><span class="badge bg-success">Present</span></td></tr>
+                                    <tr><td>002</td><td>Bob Williams</td><td>SE-101</td><td>2023-10-01</td><td><span class="badge bg-danger">Absent</span></td></tr>
+                                    <tr><td>003</td><td>Charlie Brown</td><td>SE-101</td><td>2023-10-01</td><td><span class="badge bg-success">Present</span></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="view-sdlc" class="view-section">
+                    <h2 class="h3 mb-4 text-gray-800">Project SDLC Mapping</h2>
+                    <p class="mb-4">Visual representation of the Software Development Life Cycle phases used for this Smart Attendance Portal.</p>
+                    
+                    <div class="card shadow p-4">
+                        <div class="sdlc-container">
+                            <div class="sdlc-box">
+                                <div class="h1 text-primary mb-3"><i class="fas fa-tasks"></i></div>
+                                <h5 class="font-weight-bold">Planning</h5>
+                                <small>Requirement Gathering & Scope Definition</small>
+                            </div>
+                            <div class="sdlc-arrow"><i class="fas fa-chevron-right"></i></div>
+                            
+                            <div class="sdlc-box">
+                                <div class="h1 text-info mb-3"><i class="fas fa-search"></i></div>
+                                <h5 class="font-weight-bold">Analysis</h5>
+                                <small>Feasibility Study & User Flow</small>
+                            </div>
+                            <div class="sdlc-arrow"><i class="fas fa-chevron-right"></i></div>
+
+                            <div class="sdlc-box">
+                                <div class="h1 text-warning mb-3"><i class="fas fa-pencil-ruler"></i></div>
+                                <h5 class="font-weight-bold">Design</h5>
+                                <small>UI/UX Prototyping & Database Design</small>
+                            </div>
+                            <div class="sdlc-arrow"><i class="fas fa-chevron-right"></i></div>
+
+                            <div class="sdlc-box">
+                                <div class="h1 text-danger mb-3"><i class="fas fa-code"></i></div>
+                                <h5 class="font-weight-bold">Implementation</h5>
+                                <small>Coding & Module Integration</small>
+                            </div>
+                            <div class="sdlc-arrow"><i class="fas fa-chevron-right"></i></div>
+
+                            <div class="sdlc-box">
+                                <div class="h1 text-success mb-3"><i class="fas fa-bug"></i></div>
+                                <h5 class="font-weight-bold">Testing</h5>
+                                <small>Unit Testing & Deployment</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div> </div> </div> <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        // --- 1. CONFIGURATION & STATE ---
+        let currentUserRole = '';
+        
+        // Mock Students Data
+        const students = [
+            { id: 'S001', name: 'Alice Smith', status: 'Present' },
+            { id: 'S002', name: 'Bob Johnson', status: 'Absent' },
+            { id: 'S003', name: 'Charlie Davis', status: 'Present' },
+            { id: 'S004', name: 'Diana Prince', status: 'Present' },
+        ];
+
+        // --- 2. AUTHENTICATION LOGIC ---
+        function handleLogin(e) {
+            e.preventDefault();
+            const role = document.getElementById('roleSelect').value;
+            
+            if(!role) {
+                alert('Please select a role!');
+                return;
+            }
+
+            currentUserRole = role;
+            
+            // UI Transition
+            document.getElementById('login-section').style.display = 'none';
+            document.getElementById('app-wrapper').style.display = 'flex'; // Uses Flexbox
+            
+            // Setup User Info
+            document.getElementById('user-role-display').innerText = role.toUpperCase();
+            document.getElementById('user-name-display').innerText = role === 'admin' ? 'Administrator' : (role === 'student' ? 'Student User' : 'Faculty Member');
+            document.getElementById('user-avatar-initial').innerText = role.charAt(0).toUpperCase();
+
+            // Build Menu based on Role
+            buildSidebar(role);
+
+            // Navigate to default view
+            if(role === 'student') navigateTo('student');
+            else if(role === 'faculty') navigateTo('faculty');
+            else navigateTo('admin');
+        }
+
+        function logout() {
+            if(confirm('Are you sure you want to logout?')) {
+                location.reload(); // Simple reload to reset state
+            }
+        }
+
+        // --- 3. DYNAMIC SIDEBAR BUILDER ---
+        function buildSidebar(role) {
+            const menu = document.getElementById('sidebar-menu');
+            menu.innerHTML = ''; // Clear
+
+            // Define menus
+            const menus = {
+                admin: [
+                    { id: 'admin', icon: 'fa-tachometer-alt', text: 'Dashboard' },
+                    { id: 'reports', icon: 'fa-chart-bar', text: 'Reports' },
+                    { id: 'sdlc', icon: 'fa-project-diagram', text: 'SDLC Map' },
+                ],
+                faculty: [
+                    { id: 'faculty', icon: 'fa-user-check', text: 'Attendance' },
+                    { id: 'reports', icon: 'fa-file-alt', text: 'Reports' },
+                    { id: 'sdlc', icon: 'fa-project-diagram', text: 'SDLC Map' },
+                ],
+                student: [
+                    { id: 'student', icon: 'fa-user-graduate', text: 'My Dashboard' },
+                    { id: 'reports', icon: 'fa-history', text: 'History' },
+                    { id: 'sdlc', icon: 'fa-project-diagram', text: 'SDLC Map' },
+                ]
+            };
+
+            // Inject Links
+            menus[role].forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'nav-item';
+                li.innerHTML = `<a class="nav-link" onclick="navigateTo('${item.id}')"><i class="fas ${item.icon}"></i> ${item.text}</a>`;
+                menu.appendChild(li);
+            });
+
+            // Add Logout
+            const logoutLi = document.createElement('li');
+            logoutLi.className = 'nav-item mt-4';
+            logoutLi.innerHTML = `<a class="nav-link text-danger" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>`;
+            menu.appendChild(logoutLi);
+        }
+
+        // --- 4. NAVIGATION LOGIC ---
+        function navigateTo(viewId) {
+            // Hide all views
+            document.querySelectorAll('.view-section').forEach(el => el.style.display = 'none');
+            
+            // Show target view
+            document.getElementById(`view-${viewId}`).style.display = 'block';
+
+            // Active State in Sidebar
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+            // Find link with onclick containing viewId and add active (simple matching)
+            // In a real app, use IDs on nav items
+            
+            // Initialize specific components if needed
+            if(viewId === 'student') initChart();
+            if(viewId === 'faculty') {
+                document.getElementById('todayDate').valueAsDate = new Date();
+                loadStudentTable();
+            }
+        }
+
+        // --- 5. COMPONENT LOGIC ---
+
+        // Faculty: Load Table
+        function loadStudentTable() {
+            const tbody = document.getElementById('attendance-table-body');
+            tbody.innerHTML = '';
+            
+            students.forEach(s => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${s.id}</td>
+                    <td>${s.name}</td>
+                    <td class="text-center"><span class="badge ${s.status === 'Present' ? 'bg-success' : 'bg-danger'}">${s.status}</span></td>
+                    <td class="text-center">
+                        <div class="btn-group" role="group">
+                            <input type="radio" class="btn-check" name="btnradio_${s.id}" id="btnradio1_${s.id}" autocomplete="off" ${s.status === 'Present' ? 'checked' : ''}>
+                            <label class="btn btn-outline-success btn-sm" for="btnradio1_${s.id}">P</label>
+
+                            <input type="radio" class="btn-check" name="btnradio_${s.id}" id="btnradio2_${s.id}" autocomplete="off" ${s.status === 'Absent' ? 'checked' : ''}>
+                            <label class="btn btn-outline-danger btn-sm" for="btnradio2_${s.id}">A</label>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Student: Chart.js
+        let myPieChart = null;
+        function initChart() {
+            const ctx = document.getElementById("myPieChart");
+            if(myPieChart) myPieChart.destroy(); // Prevent duplicate rendering
+
+            myPieChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ["Present", "Absent"],
+                    datasets: [{
+                        data: [85, 15],
+                        backgroundColor: ['#4e73df', '#eaecf4'],
+                        hoverBackgroundColor: ['#2e59d9', '#dddfeb'],
+                        hoverBorderColor: "rgba(234, 236, 244, 1)",
+                    }],
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    tooltips: {
+                        backgroundColor: "rgb(255,255,255)",
+                        bodyFontColor: "#858796",
+                        borderColor: '#dddfeb',
+                        borderWidth: 1,
+                        xPadding: 15,
+                        yPadding: 15,
+                        displayColors: false,
+                        caretPadding: 10,
+                    },
+                    legend: {
+                        display: false
+                    },
+                    cutout: '80%',
+                },
+            });
+        }
+
+        // Reports: Export to CSV (Simple Client-Side Logic)
+        function exportTable() {
+            let csv = [];
+            let rows = document.querySelectorAll("#reportTable tr");
+            
+            for (let i = 0; i < rows.length; i++) {
+                let row = [], cols = rows[i].querySelectorAll("td, th");
+                for (let j = 0; j < cols.length; j++) 
+                    row.push(cols[j].innerText);
+                csv.push(row.join(","));        
+            }
+
+            let csvFile = new Blob([csv.join("\n")], {type: "text/csv"});
+            let downloadLink = document.createElement("a");
+            downloadLink.download = "attendance_report.csv";
+            downloadLink.href = window.URL.createObjectURL(csvFile);
+            downloadLink.style.display = "none";
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+        }
+
+    </script>
+</body>
+</html>
